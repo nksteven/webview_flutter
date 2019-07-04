@@ -7,6 +7,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol FLTWebviewLoadUrlDelagate <NSObject>
+
+-(void)requstWithAction:(WKNavigationAction*)action;
+
+@end
+
 @interface FLTWKNavigationDelegate : NSObject <WKNavigationDelegate>
 
 - (instancetype)initWithChannel:(FlutterMethodChannel*)channel;
@@ -15,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
  * Whether to delegate navigation decisions over the method channel.
  */
 @property(nonatomic, assign) BOOL hasDartNavigationDelegate;
-
+@property(nonatomic, weak) id<FLTWebviewLoadUrlDelagate> delegate;
 @end
 
 NS_ASSUME_NONNULL_END

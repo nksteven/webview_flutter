@@ -19,6 +19,9 @@
 - (void)webView:(WKWebView*)webView
     decidePolicyForNavigationAction:(WKNavigationAction*)navigationAction
                     decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    if ([self.delegate respondsToSelector:@selector(requstWithAction:)]) {
+        [self.delegate requstWithAction:navigationAction];
+    }
   if (!self.hasDartNavigationDelegate) {
     decisionHandler(WKNavigationActionPolicyAllow);
     return;

@@ -7,6 +7,7 @@
 #import "JavaScriptChannelHandler.h"
 
 
+#define TOOBAR_HEIGHT 44.0
 
 @implementation FLTWebViewFactory {
   NSObject<FlutterBinaryMessenger>* _messenger;
@@ -36,7 +37,15 @@
 
 @end
 
-@interface FLTWebViewController()<WKUIDelegate>
+@interface FLTWebViewController()<WKUIDelegate,FLTWebviewLoadUrlDelagate>
+
+@property(nonatomic,strong) NSMutableArray * webviewArr;
+
+@property(nonatomic,strong) WKWebView * currentWebview;
+
+@property(nonatomic,assign) int currentIndex;
+
+@property(nonatomic,strong) UIToolbar * toolbar;
 
 @end
 @implementation FLTWebViewController {
@@ -73,10 +82,19 @@
    
     _webView = [[WKWebView alloc] initWithFrame:frame configuration:configuration];
     _navigationDelegate = [[FLTWKNavigationDelegate alloc] initWithChannel:_channel];
+      _navigationDelegate.delegate = self;
     _webView.navigationDelegate = _navigationDelegate;
       _webView.UIDelegate = self;
+      [self.webviewArr removeAllObjects];
+      [self.webviewArr addObject:_webView];
+      self.currentWebview = _webView;
+      self.currentIndex = 0;
       
       [self showProgress];
+      
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+          [self showToolbar];
+      });
       
     __weak __typeof__(self) weakSelf = self;
     [_channel setMethodCallHandler:^(FlutterMethodCall* call, FlutterResult result) {
@@ -108,6 +126,114 @@
     self->_progresslayer = layer;
 }
 
+
+-(void)showToolbar{
+    UIWindow * window = [[UIApplication sharedApplication] windows].firstObject;
+    UIToolbar * toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, CGRectGetHeight(self->_webView.frame)-TOOBAR_HEIGHT, window.bounds.size.width, TOOBAR_HEIGHT)];
+    UIBarButtonItem * leftSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
+    [leftSpaceItem setWidth:40.0];
+    // back button
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[self image:[UIImage imageNamed:@"right.png"] rotation:UIImageOrientationDown] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
+    backButton.tintColor = [UIColor blackColor];
+    
+    UIBarButtonItem * rightSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
+    [rightSpaceItem setWidth:100.0];
+    
+    
+    // forward button
+    UIBarButtonItem *forwardButton = [[UIBarButtonItem alloc]initWithImage:[UIImage imageNamed:@"right.png"] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClick)];
+    forwardButton.tintColor = [UIColor blackColor];
+    toolbar.items = @[leftSpaceItem,backButton,rightSpaceItem,forwardButton];
+    [self.view addSubview:toolbar];
+    self.toolbar = toolbar;
+}
+
+- (UIImage *)image:(UIImage *)image rotation:(UIImageOrientation)orientation
+{
+    long double rotate = 0.0;
+    CGRect rect;
+    float translateX = 0;
+    float translateY = 0;
+    float scaleX = 1.0;
+    float scaleY = 1.0;
+    
+    switch (orientation) {
+        case UIImageOrientationLeft:
+            rotate = M_PI_2;
+            rect = CGRectMake(0, 0, image.size.height, image.size.width);
+            translateX = 0;
+            translateY = -rect.size.width;
+            scaleY = rect.size.width/rect.size.height;
+            scaleX = rect.size.height/rect.size.width;
+            break;
+        case UIImageOrientationRight:
+            rotate = 33 * M_PI_2;
+            rect = CGRectMake(0, 0, image.size.height, image.size.width);
+            translateX = -rect.size.height;
+            translateY = 0;
+            scaleY = rect.size.width/rect.size.height;
+            scaleX = rect.size.height/rect.size.width;
+            break;
+        case UIImageOrientationDown:
+            rotate = M_PI;
+            rect = CGRectMake(0, 0, image.size.width, image.size.height);
+            translateX = -rect.size.width;
+            translateY = -rect.size.height;
+            break;
+        default:
+            rotate = 0.0;
+            rect = CGRectMake(0, 0, image.size.width, image.size.height);
+            translateX = 0;
+            translateY = 0;
+            break;
+    }
+    
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    //做CTM变换
+    CGContextTranslateCTM(context, 0.0, rect.size.height);
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGContextRotateCTM(context, rotate);
+    CGContextTranslateCTM(context, translateX, translateY);
+    
+    CGContextScaleCTM(context, scaleX, scaleY);
+    //绘制图片
+    CGContextDrawImage(context, CGRectMake(0, 0, rect.size.width, rect.size.height), image.CGImage);
+    
+    UIImage *newPic = UIGraphicsGetImageFromCurrentImageContext();
+    
+    return newPic;
+}
+
+
+-(void)goBackClick{
+    if([self.currentWebview canGoBack]){
+        [self.currentWebview goBack];
+    }else{
+        if(self.currentWebview != _webView){
+            [self.currentWebview removeFromSuperview];
+            self.currentIndex--;
+            if(self.currentIndex >= 0){
+                self.currentWebview = self.webviewArr[self.currentIndex];
+            }
+        }
+        
+    }
+}
+
+-(void)goForwardClick{
+    if([self.currentWebview canGoForward]){
+        [self.currentWebview goForward];
+    }else{
+        if(self.currentIndex+1 < self.webviewArr.count){
+            self.currentIndex++;
+            [self.view addSubview:self.webviewArr[self.currentIndex]];
+            [self.view bringSubviewToFront:self.toolbar];
+            self.currentWebview = self.webviewArr[self.currentIndex];
+        }
+    }
+}
+
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context{
     if ([keyPath isEqualToString:@"estimatedProgress"]) {
         _progresslayer.opacity = 1;
@@ -135,7 +261,15 @@
         //[webView loadRequest:navigationAction.request];
         WKWebView *popup = [[WKWebView alloc] initWithFrame:self.view.frame configuration:configuration];
         popup.UIDelegate = self;
+        popup.navigationDelegate = _navigationDelegate;
         [self.view addSubview:popup];
+        [self.view bringSubviewToFront:self.toolbar];
+        if (self.currentIndex+1 < self.webviewArr.count) {
+            [self.webviewArr removeObjectsInRange:NSMakeRange(self.currentIndex+1, self.webviewArr.count-1-self.currentIndex)];
+        }
+        [self.webviewArr addObject:popup];
+        self.currentWebview = popup;
+        self.currentIndex++;
         return popup;
     }
     return nil;
@@ -145,8 +279,25 @@
     [webView removeFromSuperview];
 }
 
+
+-(void)requstWithAction:(WKNavigationAction*)action{
+    if(!action.targetFrame.isMainFrame){
+        if (self.currentIndex+1 < self.webviewArr.count) {
+            [self.webviewArr removeObjectsInRange:NSMakeRange(self.currentIndex+1, self.webviewArr.count-1-self.currentIndex)];
+        }
+    }
+}
+
 - (UIView*)view {
   return _webView;
+}
+
+-(NSMutableArray *)webviewArr
+{
+    if (!_webviewArr) {
+        _webviewArr = [NSMutableArray arrayWithCapacity:0];
+    }
+    return _webviewArr;
 }
 
 - (void)onMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -371,6 +522,7 @@
 
 - (void)dealloc
 {
+    [self.toolbar removeFromSuperview];
     [_webView removeObserver:self forKeyPath:@"estimatedProgress"];
     [_progresslayer removeFromSuperlayer];
 }
