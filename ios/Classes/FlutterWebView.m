@@ -129,7 +129,8 @@
 
 -(void)showToolbar{
     UIWindow * window = [[UIApplication sharedApplication] windows].firstObject;
-    UIToolbar * toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, CGRectGetHeight(self->_webView.frame)-TOOBAR_HEIGHT, window.bounds.size.width, TOOBAR_HEIGHT)];
+    UIToolbar * toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, _webView.frame.size.height-TOOBAR_HEIGHT, window.bounds.size.width, TOOBAR_HEIGHT)];
+    [toolbar setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
     UIBarButtonItem * leftSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     [leftSpaceItem setWidth:40.0];
     // back button
