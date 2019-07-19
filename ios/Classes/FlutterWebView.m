@@ -209,7 +209,10 @@
 
 -(void)goBackClick{
     if([self.currentWebview canGoBack]){
-        [self.currentWebview goBack];
+        WKNavigation * navigation = [self.currentWebview goBack];
+        if(navigation == nil){
+            [self.currentWebview reload];
+        }
     }else{
         if(self.currentWebview != _webView){
             [self.currentWebview removeFromSuperview];
@@ -224,7 +227,10 @@
 
 -(void)goForwardClick{
     if([self.currentWebview canGoForward]){
-        [self.currentWebview goForward];
+        WKNavigation * navigation = [self.currentWebview goForward];
+        if(navigation == nil){
+            [self.currentWebview reload];
+        }
     }else{
         if(self.currentIndex+1 < self.webviewArr.count){
             self.currentIndex++;
@@ -239,9 +245,9 @@
     if ([keyPath isEqualToString:@"estimatedProgress"]) {
         _progresslayer.opacity = 1;
         //不要让进度条倒着走...有时候goback会出现这种情况
-        if ([change[@"new"] floatValue] < [change[@"old"] floatValue]) {
-            return;
-        }
+//        if ([change[@"new"] floatValue] < [change[@"old"] floatValue]) {
+//            return;
+//        }
         _progresslayer.frame = CGRectMake(0, 0, _webView.bounds.size.width * [change[@"new"] floatValue], 3);
         
         if ([change[@"new"] floatValue] == 1) {
@@ -282,7 +288,7 @@
 
 
 -(void)requstWithAction:(WKNavigationAction*)action{
-    if(!action.targetFrame.isMainFrame){
+    if(action.targetFrame && !action.targetFrame.isMainFrame && action.sourceFrame.isMainFrame){
         if (self.currentIndex+1 < self.webviewArr.count) {
             [self.webviewArr removeObjectsInRange:NSMakeRange(self.currentIndex+1, self.webviewArr.count-1-self.currentIndex)];
         }
