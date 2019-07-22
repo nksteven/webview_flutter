@@ -264,7 +264,7 @@
 }
 
 - (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
-    if (!navigationAction.targetFrame.isMainFrame) {
+    if (!navigationAction.targetFrame.isMainFrame && [navigationAction.request.URL.absoluteString hasPrefix:@"https://m.facebook"]) {
         //[webView loadRequest:navigationAction.request];
         WKWebView *popup = [[WKWebView alloc] initWithFrame:self.view.frame configuration:configuration];
         popup.UIDelegate = self;
@@ -278,6 +278,8 @@
         self.currentWebview = popup;
         self.currentIndex++;
         return popup;
+    }else if (navigationAction.targetFrame == nil){
+        [webView loadRequest:navigationAction.request];
     }
     return nil;
 }
