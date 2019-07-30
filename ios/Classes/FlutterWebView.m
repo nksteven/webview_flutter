@@ -47,6 +47,10 @@
 
 @property(nonatomic,strong) UIToolbar * toolbar;
 
+@property(nonatomic,strong) UIBarButtonItem * backButtonItem;
+
+@property(nonatomic,strong) UIBarButtonItem * forwardButtonItem;
+
 @end
 @implementation FLTWebViewController {
   WKWebView* _webView;
@@ -96,6 +100,10 @@
           [self showToolbar];
       });
       
+      [self->_webView addObserver:self forKeyPath:@"canGoBack" options:NSKeyValueObservingOptionNew context:nil];
+      
+      [self->_webView addObserver:self forKeyPath:@"canGoForward" options:NSKeyValueObservingOptionNew context:nil];
+      
     __weak __typeof__(self) weakSelf = self;
     [_channel setMethodCallHandler:^(FlutterMethodCall* call, FlutterResult result) {
       [weakSelf onMethodCall:call result:result];
@@ -130,80 +138,27 @@
 -(void)showToolbar{
     UIWindow * window = [[UIApplication sharedApplication] windows].firstObject;
     UIToolbar * toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, _webView.frame.size.height-TOOBAR_HEIGHT, window.bounds.size.width, TOOBAR_HEIGHT)];
+    toolbar.translucent = NO;
     [toolbar setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
     UIBarButtonItem * leftSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     [leftSpaceItem setWidth:40.0];
     // back button
-    UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[self image:[UIImage imageNamed:@"right.png"] rotation:UIImageOrientationDown] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
-    backButton.tintColor = [UIColor blackColor];
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"gray-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
+    backButton.enabled = NO;
+    self.backButtonItem = backButton;
     
     UIBarButtonItem * rightSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     [rightSpaceItem setWidth:100.0];
     
     
     // forward button
-    UIBarButtonItem *forwardButton = [[UIBarButtonItem alloc]initWithImage:[UIImage imageNamed:@"right.png"] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClick)];
-    forwardButton.tintColor = [UIColor blackColor];
+    UIBarButtonItem *forwardButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"gray-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClick)];
+    forwardButton.enabled = NO;
+    self.forwardButtonItem = forwardButton;
+    
     toolbar.items = @[leftSpaceItem,backButton,rightSpaceItem,forwardButton];
     [self.view addSubview:toolbar];
     self.toolbar = toolbar;
-}
-
-- (UIImage *)image:(UIImage *)image rotation:(UIImageOrientation)orientation
-{
-    long double rotate = 0.0;
-    CGRect rect;
-    float translateX = 0;
-    float translateY = 0;
-    float scaleX = 1.0;
-    float scaleY = 1.0;
-    
-    switch (orientation) {
-        case UIImageOrientationLeft:
-            rotate = M_PI_2;
-            rect = CGRectMake(0, 0, image.size.height, image.size.width);
-            translateX = 0;
-            translateY = -rect.size.width;
-            scaleY = rect.size.width/rect.size.height;
-            scaleX = rect.size.height/rect.size.width;
-            break;
-        case UIImageOrientationRight:
-            rotate = 33 * M_PI_2;
-            rect = CGRectMake(0, 0, image.size.height, image.size.width);
-            translateX = -rect.size.height;
-            translateY = 0;
-            scaleY = rect.size.width/rect.size.height;
-            scaleX = rect.size.height/rect.size.width;
-            break;
-        case UIImageOrientationDown:
-            rotate = M_PI;
-            rect = CGRectMake(0, 0, image.size.width, image.size.height);
-            translateX = -rect.size.width;
-            translateY = -rect.size.height;
-            break;
-        default:
-            rotate = 0.0;
-            rect = CGRectMake(0, 0, image.size.width, image.size.height);
-            translateX = 0;
-            translateY = 0;
-            break;
-    }
-    
-    UIGraphicsBeginImageContext(rect.size);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    //做CTM变换
-    CGContextTranslateCTM(context, 0.0, rect.size.height);
-    CGContextScaleCTM(context, 1.0, -1.0);
-    CGContextRotateCTM(context, rotate);
-    CGContextTranslateCTM(context, translateX, translateY);
-    
-    CGContextScaleCTM(context, scaleX, scaleY);
-    //绘制图片
-    CGContextDrawImage(context, CGRectMake(0, 0, rect.size.width, rect.size.height), image.CGImage);
-    
-    UIImage *newPic = UIGraphicsGetImageFromCurrentImageContext();
-    
-    return newPic;
 }
 
 
@@ -220,6 +175,12 @@
             if(self.currentIndex >= 0){
                 self.currentWebview = self.webviewArr[self.currentIndex];
             }
+            if(self.forwardButtonItem.enabled == NO){
+                self.forwardButtonItem.enabled = YES;
+                self.forwardButtonItem.image = [[UIImage imageNamed:@"black-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            }
+            self.backButtonItem.enabled = [self.currentWebview canGoBack];
+            self.backButtonItem.image = [self.currentWebview canGoBack] ? [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
         
     }
@@ -237,6 +198,12 @@
             [self.view addSubview:self.webviewArr[self.currentIndex]];
             [self.view bringSubviewToFront:self.toolbar];
             self.currentWebview = self.webviewArr[self.currentIndex];
+            if(self.backButtonItem.enabled == NO){
+                self.backButtonItem.enabled = YES;
+                self.backButtonItem.image = [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            }
+            self.forwardButtonItem.enabled = [self.currentWebview canGoForward];
+            self.forwardButtonItem.image = [self.currentWebview canGoForward] ? [[UIImage imageNamed:@"black-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
     }
 }
@@ -258,6 +225,14 @@
                 self->_progresslayer.frame = CGRectMake(0, 0, 0, 3);
             });
         }
+    }else if([keyPath isEqualToString:@"canGoBack"]){
+        BOOL isCanGoBack = [change[@"new"] boolValue];
+        self.backButtonItem.enabled = isCanGoBack;
+        self.backButtonItem.image = isCanGoBack ? [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    }else if([keyPath isEqualToString:@"canGoForward"]){
+        BOOL isCanForward = [change[@"new"] boolValue];
+        self.forwardButtonItem.enabled = isCanForward;
+        self.forwardButtonItem.image = isCanForward ? [[UIImage imageNamed:@"black-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     }else{
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -277,6 +252,10 @@
         [self.webviewArr addObject:popup];
         self.currentWebview = popup;
         self.currentIndex++;
+        if (self.backButtonItem.enabled == NO) {
+            self.backButtonItem.enabled = YES;
+            self.backButtonItem.image = [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        }
         return popup;
     }else if (navigationAction.targetFrame == nil){
         [webView loadRequest:navigationAction.request];
@@ -533,6 +512,8 @@
 {
     [self.toolbar removeFromSuperview];
     [_webView removeObserver:self forKeyPath:@"estimatedProgress"];
+    [_webView removeObserver:self forKeyPath:@"canGoBack"];
+    [_webView removeObserver:self forKeyPath:@"canGoForward"];
     [_progresslayer removeFromSuperlayer];
 }
 
