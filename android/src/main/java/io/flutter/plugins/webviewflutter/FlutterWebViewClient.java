@@ -6,11 +6,12 @@ package io.flutter.plugins.webviewflutter;
 
 import android.annotation.TargetApi;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import androidx.annotation.NonNull;
+
 import androidx.webkit.WebViewClientCompat;
 import io.flutter.plugin.common.MethodChannel;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ class FlutterWebViewClient {
 
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   private boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+    Log.d(TAG,"shouldOverrideUrlLoading request="+request.getUrl());
     if (!hasNavigationDelegate) {
       return false;
     }
@@ -51,6 +53,7 @@ class FlutterWebViewClient {
   }
 
   private boolean shouldOverrideUrlLoading(WebView view, String url) {
+    Log.d(TAG,"shouldOverrideUrlLoading url="+url);
     if (!hasNavigationDelegate) {
       return false;
     }
@@ -67,10 +70,13 @@ class FlutterWebViewClient {
   }
 
   private void onPageFinished(WebView view, String url) {
+    Log.d(TAG,"onPageFinished---url="+url);
+//    view.loadUrl("javascript: var allLinks = document.getElementsByTagName('a'); if (allLinks) {var i;for (i=0; i<allLinks.length; i++) {var link = allLinks[i];var target = link.getAttribute('target'); var isContainer = link.href.indexOf('facebook.com'); if (isContainer!=-1 && target && target == '_blank') {link.setAttribute('target','_self');console.log('link.href='+link.href);console.log('target='+link.getAttribute('target'));}}}");
+//    view.loadUrl("javascript: var allLinks = document.getElementsByTagName('a'); if (allLinks) {var i;for (i=0; i<allLinks.length; i++) {var link = allLinks[i];var target = link.getAttribute('target');var isContainer = link.href.indexOf('facebook.com'); if (isContainer!=-1 && target && target == '_blank') {link.target='_self';console.log('link.href='+link.href);console.log('target='+link.getAttribute('target'));}}}");
     Map<String, Object> args = new HashMap<>();
     args.put("url", url);
     methodChannel.invokeMethod("onPageFinished", args);
-  }
+    }
 
   private void notifyOnNavigationRequest(
       String url, Map<String, String> headers, WebView webview, boolean isMainFrame) {
@@ -117,7 +123,7 @@ class FlutterWebViewClient {
     return new WebViewClientCompat() {
       @Override
       public boolean shouldOverrideUrlLoading(
-          @NonNull WebView view, @NonNull WebResourceRequest request) {
+              @NonNull WebView view, @NonNull WebResourceRequest request) {
         return FlutterWebViewClient.this.shouldOverrideUrlLoading(view, request);
       }
 
