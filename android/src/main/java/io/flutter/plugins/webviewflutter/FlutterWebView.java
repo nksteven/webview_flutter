@@ -9,13 +9,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ClipDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -25,7 +19,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
@@ -36,9 +29,7 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
-import io.flutter.app.FlutterActivity;
 import io.flutter.app.FlutterApplication;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
@@ -46,13 +37,10 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.platform.PlatformView;
-import io.flutter.view.FlutterView;
 
-import java.sql.BatchUpdateException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.MissingFormatWidthException;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
@@ -66,6 +54,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     private final FlutterWebViewClient flutterWebViewClient;
     private final Handler platformThreadHandler;
     private Context mContext;
+    private HorizontalProgressView popProgressBar;
     private HorizontalProgressView progressBar;
     private String TAG = "TAG";
 
@@ -89,11 +78,17 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
         settings.setJavaScriptEnabled(true);
         settings.setSupportMultipleWindows(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
+
         webView.requestFocus(View.FOCUS_DOWN);
+
         methodChannel = new MethodChannel(messenger, "plugins.flutter.io/webview_" + id);
         methodChannel.setMethodCallHandler(this);
+
         flutterWebViewClient = new FlutterWebViewClient(methodChannel);
+
         webView.setWebChromeClient(new FacebookChromeClient());
+        initProgressBar();
+
         applySettings((Map<String, Object>) params.get("settings"));
         if (params.containsKey(JS_CHANNEL_NAMES_FIELD)) {
             registerJavaScriptChannelNames((List<String>) params.get(JS_CHANNEL_NAMES_FIELD));
@@ -102,6 +97,16 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
             String url = (String) params.get("initialUrl");
             webView.loadUrl(url);
         }
+    }
+
+    private void initProgressBar() {
+        progressBar = new HorizontalProgressView(mContext, null);
+        progressBar.setTextVisible(false);
+        progressBar.setNormalBarSize(10);
+        progressBar.setReachBarColor(Color.GREEN);
+        progressBar.setNormalBarColor(Color.BLACK);
+        progressBar.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,10));
+        webView.addView(progressBar);
     }
 
     @Override
@@ -309,9 +314,11 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     void showDialog(){
         builder = new AlertDialog.Builder(mContext, AlertDialog.THEME_DEVICE_DEFAULT_DARK).create();
 
-        progressBar = new HorizontalProgressView(mContext, null);
-        progressBar.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
-        builder.setCustomTitle(progressBar);
+        popProgressBar = new HorizontalProgressView(mContext, null);
+        popProgressBar.setNormalBarSize(15);
+        popProgressBar.setReachBarSize(15);
+        popProgressBar.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
+        builder.setCustomTitle(popProgressBar);
         builder.setView(mWebviewPop);
         builder.setCancelable(false);
         builder.setButton("Close", new DialogInterface.OnClickListener() {
@@ -368,7 +375,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
             }
             try {
                 if (builder != null && builder.isShowing()) {
-                    progressBar=null;
+                    popProgressBar =null;
                     builder.dismiss();
                     builder = null;
                 }
@@ -382,14 +389,25 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
             Log.d(TAG, "onProgressChanged--------------newProgress-" + newProgress);
-            if (progressBar != null) {
+            if (popProgressBar != null) {
                 if (newProgress == 100) {
-                    progressBar.setVisibility(GONE);
+                    popProgressBar.setVisibility(GONE);
                 } else {
-                    if (progressBar.getVisibility() == GONE) {
-                        progressBar.setVisibility(VISIBLE);
+                    if (popProgressBar.getVisibility() == GONE) {
+                        popProgressBar.setVisibility(VISIBLE);
                     }
-                    progressBar.setProgress(newProgress);
+                    popProgressBar.setProgress(newProgress);
+                }
+            }else{
+                if (progressBar!=null){
+                    if (newProgress == 100) {
+                        progressBar.setVisibility(GONE);
+                    } else {
+                        if (progressBar.getVisibility() == GONE) {
+                            progressBar.setVisibility(VISIBLE);
+                        }
+                        progressBar.setProgress(newProgress);
+                    }
                 }
             }
             super.onProgressChanged(view, newProgress);
