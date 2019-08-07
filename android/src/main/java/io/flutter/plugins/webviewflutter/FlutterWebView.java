@@ -103,8 +103,8 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
         progressBar = new HorizontalProgressView(mContext, null);
         progressBar.setTextVisible(false);
         progressBar.setNormalBarSize(10);
-        progressBar.setReachBarColor(Color.GREEN);
-        progressBar.setNormalBarColor(Color.BLACK);
+        progressBar.setReachBarColor(Color.parseColor("#E06F01"));
+        progressBar.setNormalBarColor(Color.TRANSPARENT);
         progressBar.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,10));
         webView.addView(progressBar);
     }
