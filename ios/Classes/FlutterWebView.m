@@ -143,16 +143,16 @@
     UIBarButtonItem * leftSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     [leftSpaceItem setWidth:40.0];
     // back button
-    UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"gray-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
     backButton.enabled = NO;
     self.backButtonItem = backButton;
     
     UIBarButtonItem * rightSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
-    [rightSpaceItem setWidth:100.0];
+    [rightSpaceItem setWidth:90.0];
     
     
     // forward button
-    UIBarButtonItem *forwardButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"gray-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClick)];
+    UIBarButtonItem *forwardButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goForwardClick)];
     forwardButton.enabled = NO;
     self.forwardButtonItem = forwardButton;
     
@@ -177,10 +177,10 @@
             }
             if(self.forwardButtonItem.enabled == NO){
                 self.forwardButtonItem.enabled = YES;
-                self.forwardButtonItem.image = [[UIImage imageNamed:@"black-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+                self.forwardButtonItem.image = [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
             }
             self.backButtonItem.enabled = [self.currentWebview canGoBack];
-            self.backButtonItem.image = [self.currentWebview canGoBack] ? [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            self.backButtonItem.image = [self.currentWebview canGoBack] ? [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
         
     }
@@ -200,10 +200,10 @@
             self.currentWebview = self.webviewArr[self.currentIndex];
             if(self.backButtonItem.enabled == NO){
                 self.backButtonItem.enabled = YES;
-                self.backButtonItem.image = [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+                self.backButtonItem.image = [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
             }
             self.forwardButtonItem.enabled = [self.currentWebview canGoForward];
-            self.forwardButtonItem.image = [self.currentWebview canGoForward] ? [[UIImage imageNamed:@"black-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            self.forwardButtonItem.image = [self.currentWebview canGoForward] ? [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
     }
 }
@@ -228,11 +228,11 @@
     }else if([keyPath isEqualToString:@"canGoBack"]){
         BOOL isCanGoBack = [change[@"new"] boolValue];
         self.backButtonItem.enabled = isCanGoBack;
-        self.backButtonItem.image = isCanGoBack ? [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        self.backButtonItem.image = isCanGoBack ? [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     }else if([keyPath isEqualToString:@"canGoForward"]){
         BOOL isCanForward = [change[@"new"] boolValue];
         self.forwardButtonItem.enabled = isCanForward;
-        self.forwardButtonItem.image = isCanForward ? [[UIImage imageNamed:@"black-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"gray-right.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        self.forwardButtonItem.image = isCanForward ? [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     }else{
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -254,7 +254,7 @@
         self.currentIndex++;
         if (self.backButtonItem.enabled == NO) {
             self.backButtonItem.enabled = YES;
-            self.backButtonItem.image = [[UIImage imageNamed:@"black-left.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            self.backButtonItem.image = [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
         return popup;
     }else if (navigationAction.targetFrame == nil){
