@@ -51,6 +51,8 @@
 
 @property(nonatomic,strong) UIBarButtonItem * forwardButtonItem;
 
+@property(nonatomic,assign) BOOL isFirstInvoke;
+
 @end
 @implementation FLTWebViewController {
   WKWebView* _webView;
@@ -69,7 +71,8 @@
               binaryMessenger:(NSObject<FlutterBinaryMessenger>*)messenger {
   if ([super init]) {
     _viewId = viewId;
-
+      self.isFirstInvoke = YES;
+      
     NSString* channelName = [NSString stringWithFormat:@"plugins.flutter.io/webview_%lld", viewId];
     _channel = [FlutterMethodChannel methodChannelWithName:channelName binaryMessenger:messenger];
     _javaScriptChannelNames = [[NSMutableSet alloc] init];
@@ -103,6 +106,7 @@
       [self->_webView addObserver:self forKeyPath:@"canGoBack" options:NSKeyValueObservingOptionNew context:nil];
       
       [self->_webView addObserver:self forKeyPath:@"canGoForward" options:NSKeyValueObservingOptionNew context:nil];
+      [self->_webView addObserver:self forKeyPath:@"frame" options:NSKeyValueObservingOptionNew context:nil];
       
     __weak __typeof__(self) weakSelf = self;
     [_channel setMethodCallHandler:^(FlutterMethodCall* call, FlutterResult result) {
@@ -137,7 +141,7 @@
 
 -(void)showToolbar{
     UIWindow * window = [[UIApplication sharedApplication] windows].firstObject;
-    UIToolbar * toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, _webView.frame.size.height-TOOBAR_HEIGHT, window.bounds.size.width, TOOBAR_HEIGHT)];
+    UIToolbar * toolbar = [[UIToolbar alloc]initWithFrame:CGRectMake(0, _webView.frame.size.height, window.bounds.size.width, TOOBAR_HEIGHT)];
     toolbar.translucent = NO;
     [toolbar setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
     UIBarButtonItem * leftSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
@@ -233,6 +237,13 @@
         BOOL isCanForward = [change[@"new"] boolValue];
         self.forwardButtonItem.enabled = isCanForward;
         self.forwardButtonItem.image = isCanForward ? [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    }else if([keyPath isEqualToString:@"frame"]){
+        CGRect rect = [change[@"new"] CGRectValue];
+        if (rect.size.height > 0 && self.isFirstInvoke == YES) {
+            self.isFirstInvoke = NO;
+            CGRect newRect = CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height-TOOBAR_HEIGHT);
+            _webView.frame = newRect;
+        }
     }else{
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
