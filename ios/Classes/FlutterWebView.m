@@ -233,10 +233,16 @@
         }
     }else if([keyPath isEqualToString:@"canGoBack"]){
         BOOL isCanGoBack = [change[@"new"] boolValue];
+        if (self.currentWebview != _webView) {
+            isCanGoBack = YES;
+        }
         self.backButtonItem.enabled = isCanGoBack;
         self.backButtonItem.image = isCanGoBack ? [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     }else if([keyPath isEqualToString:@"canGoForward"]){
         BOOL isCanForward = [change[@"new"] boolValue];
+        if (self.currentIndex < self.webviewArr.count-1) {
+            isCanForward = YES;
+        }
         self.forwardButtonItem.enabled = isCanForward;
         self.forwardButtonItem.image = isCanForward ? [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     }else if([keyPath isEqualToString:@"frame"]){
@@ -282,7 +288,7 @@
 
 
 -(void)requstWithAction:(WKNavigationAction*)action{
-    if(action.targetFrame && !action.targetFrame.isMainFrame && action.sourceFrame.isMainFrame){
+    if(action.targetFrame && !action.targetFrame.isMainFrame && action.sourceFrame.isMainFrame && action.navigationType != WKNavigationTypeBackForward){
         if (self.currentIndex+1 < self.webviewArr.count) {
             [self.webviewArr removeObjectsInRange:NSMakeRange(self.currentIndex+1, self.webviewArr.count-1-self.currentIndex)];
         }
