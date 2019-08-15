@@ -13,10 +13,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic,strong) UIView * toolBar;
 
-@property(nonatomic,strong) UIBarButtonItem * backButton;
-
-@property(nonatomic,strong) UIBarButtonItem * forwardButton;
-
 @end
 
 NS_ASSUME_NONNULL_END
