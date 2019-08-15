@@ -5,6 +5,7 @@
 #import "FlutterWebView.h"
 #import "FLTWKNavigationDelegate.h"
 #import "JavaScriptChannelHandler.h"
+#import "FLTWKWebview.h"
 
 
 #define TOOBAR_HEIGHT 44.0
@@ -55,7 +56,7 @@
 
 @end
 @implementation FLTWebViewController {
-  WKWebView* _webView;
+  FLTWKWebview* _webView;
   int64_t _viewId;
   FlutterMethodChannel* _channel;
   NSString* _currentUrl;
@@ -87,7 +88,7 @@
     WKWebViewConfiguration* configuration = [[WKWebViewConfiguration alloc] init];
     configuration.userContentController = userContentController;
    
-    _webView = [[WKWebView alloc] initWithFrame:frame configuration:configuration];
+    _webView = [[FLTWKWebview alloc] initWithFrame:frame configuration:configuration];
     _navigationDelegate = [[FLTWKNavigationDelegate alloc] initWithChannel:_channel];
       _navigationDelegate.delegate = self;
     _webView.navigationDelegate = _navigationDelegate;
@@ -162,6 +163,7 @@
     
     toolbar.items = @[leftSpaceItem,backButton,rightSpaceItem,forwardButton];
     [self.view addSubview:toolbar];
+    _webView.toolBar = toolbar;
     self.toolbar = toolbar;
 }
 
