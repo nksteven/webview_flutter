@@ -525,6 +525,7 @@
     [_webView removeObserver:self forKeyPath:@"estimatedProgress"];
     [_webView removeObserver:self forKeyPath:@"canGoBack"];
     [_webView removeObserver:self forKeyPath:@"canGoForward"];
+    [_webView removeObserver:self forKeyPath:@"frame"];
     [_progresslayer removeFromSuperlayer];
 }
 
