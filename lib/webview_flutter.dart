@@ -118,6 +118,7 @@ class WebView extends StatefulWidget {
     this.gestureRecognizers,
     this.onPageFinished,
     this.debuggingEnabled = false,
+    this.showBottomToolbar = true,
   })  : assert(javascriptMode != null),
         super(key: key);
 
@@ -218,6 +219,9 @@ class WebView extends StatefulWidget {
   ///
   /// By default `debuggingEnabled` is false.
   final bool debuggingEnabled;
+  
+  /// show back and forward bar
+  final bool showBottomToolbar;
 
   @override
   State<StatefulWidget> createState() => _WebViewState();
@@ -308,7 +312,7 @@ Set<String> _extractChannelNames(Set<JavascriptChannel> channels) {
 
 class _CreationParams {
   _CreationParams(
-      {this.initialUrl, this.settings, this.javascriptChannelNames});
+      {this.initialUrl, this.settings, this.javascriptChannelNames, this.showBottomToolbar});
 
   static _CreationParams fromWidget(WebView widget) {
     return _CreationParams(
@@ -316,6 +320,7 @@ class _CreationParams {
       settings: _WebSettings.fromWidget(widget),
       javascriptChannelNames:
           _extractChannelNames(widget.javascriptChannels).toList(),
+      showBottomToolbar: widget.showBottomToolbar,
     );
   }
 
@@ -325,11 +330,14 @@ class _CreationParams {
 
   final List<String> javascriptChannelNames;
 
+  final bool showBottomToolbar;
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'initialUrl': initialUrl,
       'settings': settings.toMap(),
       'javascriptChannelNames': javascriptChannelNames,
+      'showBottomToolbar': showBottomToolbar,
     };
   }
 }

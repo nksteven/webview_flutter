@@ -54,6 +54,8 @@
 
 @property(nonatomic,assign) BOOL isFirstInvoke;
 
+@property(nonatomic,assign) BOOL isShowToobar;
+
 @end
 @implementation FLTWebViewController {
   FLTWKWebview* _webView;
@@ -100,14 +102,19 @@
       
       [self showProgress];
       
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-          [self showToolbar];
-      });
+      bool showToolbar = [args[@"showBottomToolbar"] boolValue];
+      self.isShowToobar = showToolbar;
+      if(showToolbar){
+          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+             [self showToolbar];
+          });
+          [self->_webView addObserver:self forKeyPath:@"frame" options:NSKeyValueObservingOptionNew context:nil];
+      }
+      
       
       [self->_webView addObserver:self forKeyPath:@"canGoBack" options:NSKeyValueObservingOptionNew context:nil];
       
       [self->_webView addObserver:self forKeyPath:@"canGoForward" options:NSKeyValueObservingOptionNew context:nil];
-      [self->_webView addObserver:self forKeyPath:@"frame" options:NSKeyValueObservingOptionNew context:nil];
       
     __weak __typeof__(self) weakSelf = self;
     [_channel setMethodCallHandler:^(FlutterMethodCall* call, FlutterResult result) {
@@ -533,7 +540,9 @@
     [_webView removeObserver:self forKeyPath:@"estimatedProgress"];
     [_webView removeObserver:self forKeyPath:@"canGoBack"];
     [_webView removeObserver:self forKeyPath:@"canGoForward"];
-    [_webView removeObserver:self forKeyPath:@"frame"];
+    if(_isShowToobar){
+       [_webView removeObserver:self forKeyPath:@"frame"];
+    }
     [_progresslayer removeFromSuperlayer];
 }
 

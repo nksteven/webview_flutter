@@ -12,9 +12,7 @@
 - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
 
     if (!CGRectContainsPoint(self.bounds, point)) {
-        //转换坐标系
         CGPoint newPoint = [self convertPoint:point toView:self.toolBar];
-        //判断触摸点是否在secondBtn上
         if (CGRectContainsPoint(self.toolBar.bounds, newPoint)) {
             return YES;
         }
