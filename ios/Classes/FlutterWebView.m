@@ -153,14 +153,14 @@
     toolbar.translucent = NO;
     [toolbar setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
     UIBarButtonItem * leftSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
-    [leftSpaceItem setWidth:40.0];
+    [leftSpaceItem setWidth:20.0];
     // back button
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
     backButton.enabled = NO;
     self.backButtonItem = backButton;
     
     UIBarButtonItem * rightSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
-    [rightSpaceItem setWidth:90.0];
+    [rightSpaceItem setWidth:50.0];
     
     
     // forward button
