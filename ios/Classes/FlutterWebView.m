@@ -8,7 +8,21 @@
 #import "FLTWKWebview.h"
 
 
-#define TOOBAR_HEIGHT 44.0
+#define TOOBAR_HEIGHT 50.0
+
+#define isPad ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+// 判断iPhone4系列
+// 判断iPhoneX
+#define IS_IPHONE_X ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) && !isPad : NO)
+// 判断iPHoneXr
+#define IS_IPHONE_Xr ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(828, 1792), [[UIScreen mainScreen] currentMode].size) && !isPad : NO)
+// 判断iPhoneXs
+#define IS_IPHONE_Xs ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) && !isPad : NO)
+// 判断iPhoneXs Max
+#define IS_IPHONE_Xs_Max ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1242, 2688), [[UIScreen mainScreen] currentMode].size) && !isPad : NO)
+
+#define SAFE_BOTTOM ((IS_IPHONE_X == YES || IS_IPHONE_Xr == YES || IS_IPHONE_Xs == YES || IS_IPHONE_Xs_Max == YES) ? 25.0 : 0.0)
+
 
 @implementation FLTWebViewFactory {
   NSObject<FlutterBinaryMessenger>* _messenger;
@@ -133,6 +147,7 @@
   return self;
 }
 
+
 -(void)showProgress{
     [self->_webView addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:nil];
     UIView *progress = [[UIView alloc]initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self->_webView.frame), 3)];
@@ -155,7 +170,7 @@
     UIBarButtonItem * leftSpaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     [leftSpaceItem setWidth:20.0];
     // back button
-    UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"Slice-left-grey"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(goBackClick)];
     backButton.enabled = NO;
     self.backButtonItem = backButton;
     
@@ -190,10 +205,10 @@
             }
             if(self.forwardButtonItem.enabled == NO){
                 self.forwardButtonItem.enabled = YES;
-                self.forwardButtonItem.image = [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+                self.forwardButtonItem.image = [[UIImage imageNamed:@"Slice-right-black"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
             }
             self.backButtonItem.enabled = [self.currentWebview canGoBack];
-            self.backButtonItem.image = [self.currentWebview canGoBack] ? [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            self.backButtonItem.image = [self.currentWebview canGoBack] ? [[UIImage imageNamed:@"Slice-left-black"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-left-grey"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
         
     }
@@ -213,10 +228,10 @@
             self.currentWebview = self.webviewArr[self.currentIndex];
             if(self.backButtonItem.enabled == NO){
                 self.backButtonItem.enabled = YES;
-                self.backButtonItem.image = [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+                self.backButtonItem.image = [[UIImage imageNamed:@"Slice-left-black"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
             }
             self.forwardButtonItem.enabled = [self.currentWebview canGoForward];
-            self.forwardButtonItem.image = [self.currentWebview canGoForward] ? [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            self.forwardButtonItem.image = [self.currentWebview canGoForward] ? [[UIImage imageNamed:@"Slice-right-black"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
     }
 }
@@ -244,19 +259,19 @@
             isCanGoBack = YES;
         }
         self.backButtonItem.enabled = isCanGoBack;
-        self.backButtonItem.image = isCanGoBack ? [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-left-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        self.backButtonItem.image = isCanGoBack ? [[UIImage imageNamed:@"Slice-left-black"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-left-grey"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     }else if([keyPath isEqualToString:@"canGoForward"]){
         BOOL isCanForward = [change[@"new"] boolValue];
         if (self.currentIndex < self.webviewArr.count-1) {
             isCanForward = YES;
         }
         self.forwardButtonItem.enabled = isCanForward;
-        self.forwardButtonItem.image = isCanForward ? [[UIImage imageNamed:@"Slice-right"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        self.forwardButtonItem.image = isCanForward ? [[UIImage imageNamed:@"Slice-right-black"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] : [[UIImage imageNamed:@"Slice-right-gray"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     }else if([keyPath isEqualToString:@"frame"]){
         CGRect rect = [change[@"new"] CGRectValue];
         if (rect.size.height > 0 && self.isFirstInvoke == YES) {
             self.isFirstInvoke = NO;
-            CGRect newRect = CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height-TOOBAR_HEIGHT);
+            CGRect newRect = CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height-TOOBAR_HEIGHT-SAFE_BOTTOM);
             _webView.frame = newRect;
         }
     }else{
@@ -280,7 +295,7 @@
         self.currentIndex++;
         if (self.backButtonItem.enabled == NO) {
             self.backButtonItem.enabled = YES;
-            self.backButtonItem.image = [[UIImage imageNamed:@"Slice-left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+            self.backButtonItem.image = [[UIImage imageNamed:@"Slice-left-black"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
         return popup;
     }else if (navigationAction.targetFrame == nil){
