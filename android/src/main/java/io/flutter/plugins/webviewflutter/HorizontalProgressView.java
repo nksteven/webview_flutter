@@ -18,13 +18,14 @@ import android.os.Bundle;
 
 import android.os.Parcelable;
 
-import android.support.annotation.IntDef;
 
 import android.util.AttributeSet;
 
 import android.view.animation.AccelerateDecelerateInterpolator;
 
 import android.widget.ProgressBar;
+
+import androidx.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 
